@@ -1,11 +1,12 @@
 import os
+import sys
 import shutil
 from markdown import markdown_to_html_node, extract_title
 
-def copy_static_to_public(src_dir="static", dest_dir="public"):
+def copy_static_to_public(src_dir="static", dest_dir="docs"):
     """
-    Recursively copy all contents from static directory to public directory.
-    Deletes existing public directory first to ensure clean copy.
+    Recursively copy all contents from static directory to docs directory.
+    Deletes existing docs directory first to ensure clean copy.
     """
     # Get absolute paths
     base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -73,7 +74,7 @@ def generate_page(from_path, template_path, dest_path, base_dir=None):
     
     # Calculate relative path to root based on directory depth
     if base_dir:
-        # Get relative path from dest to public root
+        # Get relative path from dest to docs root
         dest_dir = os.path.dirname(dest_path)
         rel_path = os.path.relpath(base_dir, dest_dir)
         if rel_path == '.':
@@ -87,7 +88,7 @@ def generate_page(from_path, template_path, dest_path, base_dir=None):
     final_html = template_content.replace("{{ Title }}", title)
     final_html = final_html.replace("{{ Content }}", html_content)
     
-    # Fix absolute paths in content to be relative
+    # Fix absolute paths to use relative paths (works for both local and GitHub Pages)
     final_html = final_html.replace('href="/', f'href="{path_prefix}')
     final_html = final_html.replace('src="/', f'src="{path_prefix}')
     
@@ -105,14 +106,14 @@ def generate_page(from_path, template_path, dest_path, base_dir=None):
     
     print(f"Page generated successfully!")
 
-def generate_pages_recursive(dir_path_content, template_path, dest_dir_path_root, public_root=None):
+def generate_pages_recursive(dir_path_content, template_path, dest_dir_path_root, docs_root=None):
     """
     Recursively generate HTML pages from all markdown files in a directory.
     Maintains the directory structure in the destination.
     """
-    # Track the public root directory for calculating relative paths
-    if public_root is None:
-        public_root = dest_dir_path_root
+    # Track the docs root directory for calculating relative paths
+    if docs_root is None:
+        docs_root = dest_dir_path_root
     
     # List all items in the content directory
     for item in os.listdir(dir_path_content):
@@ -124,25 +125,25 @@ def generate_pages_recursive(dir_path_content, template_path, dest_dir_path_root
             if item.endswith('.md'):
                 # Replace .md with .html for destination
                 dest_html_path = dest_item_path.replace('.md', '.html')
-                # Pass the root public directory for path calculation
-                generate_page(src_item_path, template_path, dest_html_path, base_dir=public_root)
+                # Pass the root docs directory for path calculation
+                generate_page(src_item_path, template_path, dest_html_path, base_dir=docs_root)
         elif os.path.isdir(src_item_path):
             # If it's a directory, create corresponding directory and recurse
             os.makedirs(dest_item_path, exist_ok=True)
-            generate_pages_recursive(src_item_path, template_path, dest_item_path, public_root)
+            generate_pages_recursive(src_item_path, template_path, dest_item_path, docs_root)
 
 def main():
     # Get base directory
     base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     
-    # Copy static files to public
-    copy_static_to_public()
+    # Copy static files to docs
+    copy_static_to_public(src_dir="static", dest_dir="docs")
     
     # Generate all pages recursively from content directory
     generate_pages_recursive(
         os.path.join(base_dir, "content"),
         os.path.join(base_dir, "template.html"),
-        os.path.join(base_dir, "public")
+        os.path.join(base_dir, "docs")
     )
 
 if __name__ == "__main__":
