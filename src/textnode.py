@@ -1,8 +1,10 @@
 from enum import Enum
 
 class TextType(Enum):
+    TEXT = 'text'
     BOLD = 'bold'
     ITALIC = 'italic'
+    CODE = 'code'
     UNDERLINE = 'underline'
     LINK = 'link'
     IMAGE = 'image'
@@ -23,17 +25,22 @@ class TextNode:
     def __repr__(self):
         return f"TextNode(text={self.text}, text_type={self.text_type.value}, url={self.url})"
 
-    def render(self) -> str:
-        if self.text_type == TextType.BOLD:
-            return f"<b>{self.text}</b>"
-        elif self.text_type == TextType.ITALIC:
-            return f"<i>{self.text}</i>"
-        elif self.text_type == TextType.UNDERLINE:
-            return f"<u>{self.text}</u>"
-        elif self.text_type == TextType.LINK:
-            return f'<a href="{self.url}">{self.text}</a>'
-        elif self.text_type == TextType.IMAGE:
-            return f'<img src="{self.url}" alt="Image"/>'
-        else:
-            return self.text
+    def text_node_to_html_node(self) -> str:
+        match self.text_type:
+            case TextType.TEXT:
+                return self.text
+            case TextType.BOLD:
+                return f"<b>{self.text}</b>"
+            case TextType.ITALIC:
+                return f"<i>{self.text}</i>"
+            case TextType.CODE:
+                return f"<code>{self.text}</code>"
+            case TextType.UNDERLINE:
+                return f"<u>{self.text}</u>"
+            case TextType.LINK:
+                return f'<a href="{self.url}">{self.text}</a>'
+            case TextType.IMAGE:
+                return f'<img src="{self.url}" alt="Image"/>'
+            case _:
+                return self.text
     
